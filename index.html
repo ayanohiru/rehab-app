@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>スポーツリハビリ支援</title>
+<style>
+:root {
+  --primary:#1565C0;--primary-light:#1976D2;--secondary:#00897B;
+  --accent:#FF6F00;--bg:#EFF3F8;--card:#FFFFFF;--text:#1A202C;
+  --text2:#718096;--border:#E2E8F0;--success:#38A169;--danger:#E53E3E;
+  --warning:#D97706;--radius:16px;--shadow:0 2px 12px rgba(0,0,0,0.09);--nav-h:68px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Meiryo',sans-serif;background:var(--bg);color:var(--text);max-width:430px;margin:0 auto;min-height:100vh;position:relative;overflow-x:hidden}
+.screen{display:none;min-height:100vh;padding-bottom:calc(var(--nav-h) + 12px);animation:fadeIn .25s ease}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+/* HEADER */
+.hdr{background:var(--primary);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.22)}
+.hdr-back{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:2px 6px;border-radius:8px}
+.hdr-title{font-size:17px;font-weight:700;flex:1;letter-spacing:.02em}
+.hdr-badge{background:rgba(255,255,255,.22);border:none;color:#fff;padding:5px 13px;border-radius:20px;font-size:12px;cursor:pointer;font-weight:600}
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;border-top:1px solid var(--border);display:flex;z-index:200;box-shadow:0 -3px 16px rgba(0,0,0,.08);height:var(--nav-h)}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:none;background:none;gap:3px;transition:color .2s}
+.ni .ico{font-size:23px}.ni .lbl{font-size:10px;color:var(--text2);font-weight:500}
+.ni.active .lbl{color:var(--primary);font-weight:700}
+.ni.active .ico{filter:drop-shadow(0 0 2px rgba(21,101,192,.4))}
+/* SPLASH */
+#s-splash{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(145deg,#1565C0 0%,#0D47A1 40%,#00897B 100%);color:#fff;gap:18px;padding:40px 24px}
+.splash-logo{font-size:72px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.3))}
+.splash-title{font-size:26px;font-weight:800;text-align:center;letter-spacing:.03em}
+.splash-sub{font-size:14px;opacity:.82;text-align:center;line-height:1.7}
+.splash-mode-wrap{display:flex;gap:16px;width:100%;margin-top:8px}
+.splash-mode{flex:1;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.4);color:#fff;padding:16px 10px;border-radius:16px;font-size:14px;font-weight:600;cursor:pointer;text-align:center;transition:background .2s;line-height:1.5}
+.splash-mode:active{background:rgba(255,255,255,.28)}
+.splash-version{font-size:11px;opacity:.45}
+/* HOME */
+.home-banner{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;padding:20px 16px}
+.home-greeting{font-size:13px;opacity:.85;margin-bottom:4px}
+.home-name{font-size:20px;font-weight:800}
+.home-stats{display:flex;gap:10px;margin-top:14px}
+.home-stat{background:rgba(255,255,255,.18);border-radius:12px;padding:10px 14px;flex:1;text-align:center}
+.home-stat .sv{font-size:20px;font-weight:800}.home-stat .sl{font-size:10px;opacity:.85}
+.sec-title{font-size:15px;font-weight:700;padding:16px 16px 8px;color:var(--text)}
+.d-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 16px 8px}
+.d-card{background:#fff;border-radius:var(--radius);padding:18px 14px;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s,box-shadow .15s;border-top:4px solid var(--dc,var(--primary));position:relative;overflow:hidden}
+.d-card:active{transform:scale(.97)}
+.d-card .d-ico{font-size:34px;margin-bottom:8px}
+.d-card .d-name{font-size:13px;font-weight:700;margin-bottom:3px}
+.d-card .d-sub{font-size:11px;color:var(--text2);line-height:1.4}
+.d-card .d-cnt{position:absolute;top:10px;right:10px;background:var(--dc,var(--primary));color:#fff;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600}
+.d-done-bar{margin-top:10px;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.d-done-fill{height:100%;border-radius:2px;transition:width .4s}
+/* EXERCISE LIST */
+.stage-wrap{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;scrollbar-width:none}
+.stage-wrap::-webkit-scrollbar{display:none}
+.stage-chip{background:#fff;border:1.5px solid var(--border);color:var(--text2);padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .2s;flex-shrink:0}
+.stage-chip.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.ex-item{background:#fff;border-radius:var(--radius);margin:6px 16px;box-shadow:var(--shadow);display:flex;align-items:center;padding:12px 14px;cursor:pointer;gap:12px;transition:transform .15s}
+.ex-item:active{transform:scale(.98)}
+.ex-thumb{width:62px;height:62px;border-radius:12px;overflow:hidden;flex-shrink:0;background:var(--bg);display:flex;align-items:center;justify-content:center}
+.ex-thumb svg{width:62px;height:62px}
+.ex-info{flex:1;min-width:0}
+.ex-name{font-size:14px;font-weight:700;margin-bottom:3px}
+.ex-meta{font-size:11px;color:var(--text2);margin-bottom:5px}
+.ex-tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:10px;padding:2px 8px;border-radius:10px;background:#EBF4FF;color:var(--primary);font-weight:600}
+.tag.done-tag{background:#F0FFF4;color:var(--success)}
+.tag.time-tag{background:#FFF8E1;color:var(--warning)}
+.ex-chk{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;transition:all .2s}
+.ex-chk.done{background:var(--success);border-color:var(--success);color:#fff}
+.ex-time-done{font-size:10px;color:var(--success);font-weight:600;margin-top:2px}
+/* DETAIL */
+.anim-box{background:linear-gradient(135deg,#1a237e,#283593,#1565C0);margin:14px;border-radius:var(--radius);height:220px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.anim-box svg{width:100%;height:100%}
+.anim-label{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.18);color:#fff;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.05em}
+.detail-card{background:#fff;border-radius:var(--radius);margin:0 14px 12px;padding:16px;box-shadow:var(--shadow)}
+.detail-title{font-size:18px;font-weight:800;margin-bottom:4px}
+.detail-meta{font-size:12px;color:var(--text2);margin-bottom:10px}
+.pt-note-display{background:#FFFBEB;border-left:3px solid #F59E0B;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px;color:#92400E;line-height:1.5}
+.reps-row{display:flex;gap:8px;margin-bottom:14px}
+.reps-box{flex:1;background:var(--bg);border-radius:12px;padding:10px 6px;text-align:center}
+.reps-box .rv{font-size:17px;font-weight:800;color:var(--primary)}.reps-box .rl{font-size:10px;color:var(--text2)}
+.steps-title{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text2)}
+.step-item{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start}
+.step-num{width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-text{font-size:13px;line-height:1.55;color:var(--text);padding-top:3px}
+.elapsed-info{text-align:center;font-size:12px;color:var(--text2);margin-bottom:6px;min-height:18px}
+.timer-section{text-align:center;margin:0 14px 12px}
+.timer-ring-wrap{position:relative;width:120px;height:120px;margin:0 auto 10px}
+.timer-ring-wrap svg{position:absolute;top:0;left:0}
+.timer-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px;font-weight:800;color:var(--primary)}
+.timer-btns{display:flex;gap:10px;margin:0 14px 14px}
+.set-tracker{display:flex;justify-content:center;gap:10px;margin:8px 0 14px}
+.set-dot{width:32px;height:32px;border-radius:50%;border:2px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;transition:all .2s}
+.set-dot.filled{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn-primary{flex:1;background:var(--primary);color:#fff;border:none;padding:14px;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;transition:transform .15s,opacity .15s}
+.btn-primary:active{transform:scale(.97);opacity:.9}
+.btn-secondary{flex:1;background:#fff;color:var(--primary);border:2px solid var(--primary);padding:14px;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer}
+.btn-done{width:100%;background:var(--success);color:#fff;border:none;padding:16px;border-radius:50px;font-size:16px;font-weight:700;cursor:pointer;margin:0 0 10px;transition:transform .15s}
+.btn-done:active{transform:scale(.97)}
+/* CHECK */
+.check-date{text-align:center;padding:16px;font-size:14px;color:var(--text2)}
+.check-disease-title{font-size:16px;font-weight:700;padding:4px 16px 10px}
+.pain-section{background:#fff;border-radius:var(--radius);margin:0 14px 12px;padding:16px;box-shadow:var(--shadow)}
+.pain-title{font-size:14px;font-weight:700;margin-bottom:12px}
+.pain-scale{display:flex;justify-content:space-between;gap:4px;margin-bottom:6px}
+.pain-btn{flex:1;aspect-ratio:1;border-radius:8px;border:none;font-size:14px;font-weight:700;cursor:pointer;transition:transform .15s,background .15s;background:var(--bg);color:var(--text2)}
+.pain-btn:active{transform:scale(.9)}.pain-btn.selected{color:#fff}
+.pain-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text2)}
+.memo-section{background:#fff;border-radius:var(--radius);margin:0 14px 12px;padding:16px;box-shadow:var(--shadow)}
+.memo-section textarea{width:100%;height:80px;border:1.5px solid var(--border);border-radius:10px;padding:10px;font-size:13px;resize:none;outline:none;font-family:inherit;transition:border-color .2s}
+.memo-section textarea:focus{border-color:var(--primary)}
+.submit-btn{display:block;width:calc(100% - 28px);margin:0 14px 14px;background:var(--secondary);color:#fff;border:none;padding:16px;border-radius:50px;font-size:16px;font-weight:700;cursor:pointer;transition:transform .15s}
+.submit-btn:active{transform:scale(.97)}
+/* PROGRESS */
+.progress-hero{background:linear-gradient(135deg,var(--secondary),var(--primary));color:#fff;padding:20px 16px 24px}
+.prog-title{font-size:15px;font-weight:700;margin-bottom:14px}
+.prog-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.prog-stat{background:rgba(255,255,255,.18);border-radius:14px;padding:12px;text-align:center}
+.prog-stat .psv{font-size:22px;font-weight:800}.prog-stat .psl{font-size:10px;opacity:.85}
+.report-btn{display:block;width:100%;margin-top:14px;background:rgba(255,255,255,.2);color:#fff;border:1.5px solid rgba(255,255,255,.5);padding:12px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s}
+.report-btn:active{background:rgba(255,255,255,.3)}
+.cal-wrap{background:#fff;border-radius:var(--radius);margin:14px;padding:16px;box-shadow:var(--shadow)}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-month{font-size:15px;font-weight:700}
+.cal-nav{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text2);padding:4px 8px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-dow{text-align:center;font-size:10px;font-weight:600;color:var(--text2);padding:2px 0}
+.cal-cell{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;cursor:default;color:var(--text2);background:var(--bg)}
+.cal-cell.today{border:2px solid var(--primary);color:var(--primary)}
+.cal-cell.done{background:var(--success);color:#fff}
+.cal-cell.partial{background:#FBBF24;color:#fff}
+.cal-cell.empty{background:transparent}
+.history-wrap{margin:0 14px;padding-bottom:12px}
+.history-item{background:#fff;border-radius:var(--radius);margin-bottom:8px;padding:14px;box-shadow:var(--shadow)}
+.hi-date{font-size:12px;color:var(--text2);margin-bottom:6px}
+.hi-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px}
+.hi-disease{font-size:14px;font-weight:700}
+.hi-detail{font-size:12px;color:var(--text2)}
+.hi-pain{font-size:12px;font-weight:600;padding:3px 10px;border-radius:10px}
+.hi-time-badge{font-size:11px;color:var(--primary);font-weight:600;padding:2px 8px;background:#EBF4FF;border-radius:10px}
+/* PT MODE */
+.pt-hero{background:linear-gradient(135deg,#4A148C,#7B1FA2);color:#fff;padding:20px 16px}
+.pt-desc{font-size:13px;opacity:.85;margin-top:4px;line-height:1.5}
+.pt-disease-sel{padding:12px 16px}
+.pt-disease-chip{display:inline-block;background:#fff;border:1.5px solid var(--border);color:var(--text);padding:7px 16px;border-radius:20px;font-size:12px;font-weight:600;margin:0 6px 8px 0;cursor:pointer;transition:all .2s}
+.pt-disease-chip.active{background:#7B1FA2;border-color:#7B1FA2;color:#fff}
+.pt-ex-item{background:#fff;border-radius:var(--radius);margin:6px 16px;padding:14px;box-shadow:var(--shadow)}
+.pt-ex-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.pt-ex-name{font-size:14px;font-weight:700}
+.pt-toggle{position:relative;width:42px;height:24px}
+.pt-toggle input{display:none}
+.pt-slider{position:absolute;inset:0;background:#ccc;border-radius:24px;cursor:pointer;transition:.3s}
+.pt-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}
+.pt-toggle input:checked+.pt-slider{background:var(--success)}
+.pt-toggle input:checked+.pt-slider:before{transform:translateX(18px)}
+.pt-reps-row{display:flex;gap:8px;flex-wrap:wrap}
+.pt-field{flex:1;min-width:60px}
+.pt-field label{font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:4px}
+.pt-field input,.pt-field select{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:8px 10px;font-size:13px;font-weight:600;outline:none;font-family:inherit;transition:border-color .2s;background:#fff}
+.pt-field input:focus,.pt-field select:focus{border-color:#7B1FA2}
+.pt-note{margin-top:10px}
+.pt-note textarea{width:100%;height:56px;border:1.5px solid var(--border);border-radius:10px;padding:8px 10px;font-size:12px;resize:none;outline:none;font-family:inherit}
+.pt-save-btn{display:block;width:calc(100% - 28px);margin:12px 14px;background:#7B1FA2;color:#fff;border:none;padding:16px;border-radius:50px;font-size:16px;font-weight:700;cursor:pointer}
+/* TOAST */
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);background:#1A202C;color:#fff;padding:12px 24px;border-radius:30px;font-size:14px;font-weight:600;z-index:9999;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.modal-overlay.show{opacity:1;pointer-events:auto}
+.modal-sheet{background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:430px;padding:20px 20px 32px;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);max-height:88vh;overflow-y:auto}
+.modal-overlay.show .modal-sheet{transform:translateY(0)}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:14px}
+.report-content{font-size:12px;line-height:1.9;background:#f8fafc;border-radius:12px;padding:14px;margin-bottom:14px;white-space:pre-wrap;font-family:'Courier New',monospace;border:1px solid var(--border);max-height:52vh;overflow-y:auto}
+::-webkit-scrollbar{width:0}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="s-splash" class="screen active">
+  <div class="splash-logo">🏃</div>
+  <div class="splash-title">スポーツ<br>リハビリ支援</div>
+  <div class="splash-sub">理学療法士が処方した体操を<br>正しく・記録しながら続けるアプリ</div>
+  <div class="splash-mode-wrap">
+    <button class="splash-mode" onclick="startApp('patient')">👤 患者として<br>はじめる</button>
+    <button class="splash-mode" onclick="startApp('pt')">🩺 療法士として<br>処方する</button>
+  </div>
+  <div class="splash-version">Sports Rehab v2.0</div>
+</div>
+
+<!-- HOME -->
+<div id="s-home" class="screen">
+  <div class="home-banner">
+    <div class="home-greeting" id="home-greeting">おはようございます</div>
+    <div class="home-name" id="home-name">疾患を選んでください</div>
+    <div class="home-stats">
+      <div class="home-stat"><div class="sv" id="stat-streak">0</div><div class="sl">連続日数🔥</div></div>
+      <div class="home-stat"><div class="sv" id="stat-today">0%</div><div class="sl">今日の達成率</div></div>
+      <div class="home-stat"><div class="sv" id="stat-time">0分</div><div class="sl">今日の時間</div></div>
+    </div>
+  </div>
+  <div class="sec-title">🏥 スポーツ疾患を選ぶ</div>
+  <div class="d-grid" id="disease-grid"></div>
+</div>
+
+<!-- EXERCISE LIST -->
+<div id="s-list" class="screen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goBack()">←</button>
+    <div class="hdr-title" id="list-title">体操一覧</div>
+    <button class="hdr-badge" onclick="navTo('check')">チェック</button>
+  </div>
+  <div class="stage-wrap" id="stage-wrap"></div>
+  <div id="exercise-list"></div>
+</div>
+
+<!-- EXERCISE DETAIL -->
+<div id="s-detail" class="screen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goBack()">←</button>
+    <div class="hdr-title" id="detail-title">体操の詳細</div>
+  </div>
+  <div class="anim-box" id="anim-box"></div>
+  <div class="detail-card">
+    <div class="detail-title" id="d-name"></div>
+    <div class="detail-meta" id="d-meta"></div>
+    <div id="d-pt-note"></div>
+    <div class="reps-row">
+      <div class="reps-box"><div class="rv" id="d-reps">10回</div><div class="rl">回数</div></div>
+      <div class="reps-box"><div class="rv" id="d-sets">3セット</div><div class="rl">セット数</div></div>
+      <div class="reps-box"><div class="rv" id="d-rest">30秒</div><div class="rl">休憩秒</div></div>
+      <div class="reps-box"><div class="rv" id="d-timeofday">—</div><div class="rl">推奨時間</div></div>
+    </div>
+    <div class="steps-title">📋 やり方</div>
+    <div id="steps-list"></div>
+  </div>
+  <div class="detail-card">
+    <div class="steps-title" style="margin-bottom:12px">🔢 セット管理</div>
+    <div class="set-tracker" id="set-tracker"></div>
+    <div class="elapsed-info" id="elapsed-info">開始前</div>
+    <div class="timer-btns">
+      <button class="btn-secondary" onclick="resetTimer()">リセット</button>
+      <button class="btn-primary" id="timer-btn" onclick="toggleTimer()">▶ タイマー開始</button>
+    </div>
+    <div class="timer-section">
+      <div class="timer-ring-wrap">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="#E2E8F0" stroke-width="8"/>
+          <circle id="timer-ring" cx="60" cy="60" r="52" fill="none" stroke="var(--primary)" stroke-width="8"
+            stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="0"
+            transform="rotate(-90 60 60)" style="transition:stroke-dashoffset .5s"/>
+        </svg>
+        <div class="timer-num" id="timer-num">0:30</div>
+      </div>
+    </div>
+    <button class="btn-done" onclick="markDone()">✓ この体操を完了にする</button>
+  </div>
+</div>
+
+<!-- DAILY CHECK -->
+<div id="s-check" class="screen">
+  <div class="hdr">
+    <button class="hdr-back" onclick="goBack()">←</button>
+    <div class="hdr-title">今日のチェック</div>
+  </div>
+  <div class="check-date" id="check-date"></div>
+  <div class="check-disease-title" id="check-disease-title"></div>
+  <div id="check-list"></div>
+  <div class="pain-section">
+    <div class="pain-title">😣 痛みの強さ（0=なし、10=最強）</div>
+    <div class="pain-scale" id="pain-scale"></div>
+    <div class="pain-labels"><span>痛みなし</span><span>中程度</span><span>最大の痛み</span></div>
+  </div>
+  <div class="memo-section">
+    <div class="steps-title">📝 メモ・気になったこと</div>
+    <textarea id="memo-input" placeholder="体調、できなかった体操、質問など..."></textarea>
+  </div>
+  <button class="submit-btn" onclick="submitCheck()">📤 今日の記録を保存・報告</button>
+</div>
+
+<!-- PROGRESS -->
+<div id="s-progress" class="screen">
+  <div class="progress-hero">
+    <div class="prog-title">📊 進捗・履歴</div>
+    <div class="prog-stats">
+      <div class="prog-stat"><div class="psv" id="p-streak">0</div><div class="psl">連続日数🔥</div></div>
+      <div class="prog-stat"><div class="psv" id="p-total">0</div><div class="psl">総実施回</div></div>
+      <div class="prog-stat"><div class="psv" id="p-time">0分</div><div class="psl">今月の時間</div></div>
+    </div>
+    <button class="report-btn" onclick="showReport()">📋 本日のレポートを生成</button>
+  </div>
+  <div class="cal-wrap">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="calPrev()">‹</button>
+      <div class="cal-month" id="cal-month"></div>
+      <button class="cal-nav" onclick="calNext()">›</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+  <div class="sec-title">📋 記録履歴</div>
+  <div class="history-wrap" id="history-list"></div>
+</div>
+
+<!-- PT MODE -->
+<div id="s-pt" class="screen">
+  <div class="pt-hero">
+    <div class="hdr-title">🩺 療法士モード</div>
+    <div class="pt-desc">疾患ごとに体操の回数・セット数・推奨時間帯・注意事項を処方できます</div>
+  </div>
+  <div class="pt-disease-sel">
+    <div class="sec-title" style="padding-left:0">疾患を選択</div>
+    <div id="pt-disease-chips"></div>
+  </div>
+  <div id="pt-exercise-list"></div>
+  <button class="pt-save-btn" onclick="savePrescription()">💾 処方内容を保存</button>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bnav" id="bnav">
+  <button class="ni active" onclick="navTo('home')" id="ni-home"><span class="ico">🏠</span><span class="lbl">ホーム</span></button>
+  <button class="ni" onclick="navTo('list')" id="ni-list"><span class="ico">📋</span><span class="lbl">体操一覧</span></button>
+  <button class="ni" onclick="navTo('check')" id="ni-check"><span class="ico">✅</span><span class="lbl">チェック</span></button>
+  <button class="ni" onclick="navTo('progress')" id="ni-progress"><span class="ico">📊</span><span class="lbl">進捗</span></button>
+  <button class="ni" onclick="navTo('pt')" id="ni-pt"><span class="ico">🩺</span><span class="lbl">処方</span></button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- REPORT MODAL -->
+<div class="modal-overlay" id="report-modal" onclick="handleOverlayClick(event,'report-modal')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📋 本日のリハビリレポート</div>
+    <div class="report-content" id="report-content"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-secondary" onclick="closeModal('report-modal')" style="flex:1;padding:12px;border-radius:50px;font-size:14px;font-weight:700">閉じる</button>
+      <button class="btn-primary" onclick="copyReport()" style="flex:1;padding:12px;border-radius:50px;font-size:14px;font-weight:700">📋 コピー</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const DISEASES = [
+  {id:'ankle',name:'足関節捻挫',icon:'🦶',color:'#00897B',desc:'足首の外側靭帯損傷・慢性不安定性',stages:['急性期（0〜3日）','回復期（4〜14日）','復帰期（2週〜）'],exercises:['ankle_circle','calf_raise','resist_band','balance_stand']},
+  {id:'knee',name:'膝前十字靭帯',icon:'🦵',color:'#1565C0',desc:'ACL損傷・術後リハビリ',stages:['術後急性期','筋力回復期','スポーツ復帰期'],exercises:['quad_set','slr','mini_squat','step_up']},
+  {id:'shoulder',name:'肩関節疾患',icon:'💪',color:'#E65100',desc:'腱板損傷・肩周囲炎・脱臼後',stages:['安静期','可動域改善期','筋力強化期'],exercises:['pendulum','wall_slide','ext_rotation','scaption']},
+  {id:'back',name:'腰椎疾患・腰痛',icon:'🔄',color:'#6A1B9A',desc:'腰椎椎間板ヘルニア・筋性腰痛',stages:['急性期','慢性期','予防・強化期'],exercises:['pelvic_tilt','cat_cow','bird_dog','dead_bug']},
+  {id:'elbow',name:'野球肘・テニス肘',icon:'🎾',color:'#C62828',desc:'上腕骨外側・内側上顆炎',stages:['炎症期','回復期','強化期'],exercises:['wrist_ext','wrist_flex','forearm_rot','eccentric_wrist']},
+  {id:'muscle',name:'肉離れ・筋損傷',icon:'🏃',color:'#2E7D32',desc:'ハムストリングス・大腿四頭筋・ふくらはぎ',stages:['急性期（RICE）','回復期','競技復帰期'],exercises:['static_stretch','active_stretch','nordic_curl','sprint_prep']}
+];
+
+const EXERCISES = {
+  ankle_circle:{name:'足首回し（アンクルサークル）',body:'足関節',reps:20,sets:3,rest:30,animType:'ankle_circle',steps:['椅子に座り、足を床から少し浮かせます','足首だけをゆっくり大きく内回しに10回まわします','同じく外回しに10回まわします','痛みが強いときは範囲を小さくしましょう'],tags:['可動域','循環改善']},
+  calf_raise:{name:'カーフレイズ（踵上げ）',body:'下腿三頭筋',reps:15,sets:3,rest:30,animType:'calf_raise',steps:['壁や手すりに軽く手を添えて立ちます','ゆっくり踵を上げ、つま先立ちになります（2秒）','その姿勢で1秒キープします','ゆっくり踵を下ろします（3秒）','痛みがなければ片足で行うと効果的です'],tags:['筋力強化','バランス']},
+  resist_band:{name:'チューブ底屈・背屈',body:'足関節周囲筋',reps:15,sets:3,rest:30,animType:'wrist_ext',steps:['床に座り、足の裏にチューブをかけます','足首を手前に引く動作（背屈）を15回','次に足先を伸ばす動作（底屈）を15回','チューブのテンションで負荷を調整します'],tags:['筋力強化','抵抗運動']},
+  balance_stand:{name:'片足立ちバランス',body:'足首周囲・体幹',reps:30,sets:3,rest:20,animType:'balance_stand',steps:['壁の近くで片足立ちになります','30秒間バランスを保ちます','慣れたら目を閉じて行います','不安定なクッション上で行うとより効果的'],tags:['バランス','固有感覚']},
+  quad_set:{name:'クアドセット（大腿四頭筋収縮）',body:'大腿四頭筋',reps:15,sets:3,rest:30,animType:'quad_set',steps:['膝を伸ばして床に座るか仰向けになります','膝の裏を床に押し付けるように大腿前面の筋肉に力を入れます','5秒間キープして力を抜きます','術後すぐから行える体操です','大腿前面がピクッと動けば正しくできています'],tags:['術後急性期','筋活性化']},
+  slr:{name:'SLR（下肢伸展挙上）',body:'大腿四頭筋・股関節屈筋',reps:15,sets:3,rest:30,animType:'slr',steps:['仰向けになり、片膝を立てます','反対の膝をピンと伸ばしたまま足を30〜45°上げます','2秒キープしてゆっくり下ろします','大腿前面に力が入っているのを確認しながら行います'],tags:['筋力強化','股関節']},
+  mini_squat:{name:'ミニスクワット',body:'大腿四頭筋・殿筋',reps:15,sets:3,rest:45,animType:'mini_squat',steps:['肩幅に足を開き、つま先を少し外に向けて立ちます','ゆっくり膝を30〜45°曲げます（深く曲げすぎない）','膝がつま先より前に出ないように注意します','2秒かけて立ち上がります','痛みが出たら範囲を浅くしましょう'],tags:['筋力強化','機能回復']},
+  step_up:{name:'ステップアップ（台上がり）',body:'大腿四頭筋・殿筋・バランス',reps:10,sets:3,rest:45,animType:'step_up',steps:['10〜20cmの台（雑誌など）を用意します','患側の足を台に乗せます','台に乗った足で体を押し上げ、片足立ちになります','ゆっくり元の位置に戻ります','支える方の足（患側）に負荷がかかっているのを意識'],tags:['機能回復','荷重訓練']},
+  pendulum:{name:'コドマン体操（ペンデュラム）',body:'肩関節周囲',reps:30,sets:3,rest:30,animType:'pendulum',steps:['テーブルに健側の手を置いて前傾姿勢になります','患側の腕を自然に垂らします','ゆっくりと前後・左右に振り子運動をします','最後に時計回り・反時計回りに円を描きます','腕の重さで自然に動かすのがポイントです'],tags:['可動域','急性期']},
+  wall_slide:{name:'ウォールスライド（壁押し上げ）',body:'肩甲骨周囲・三角筋',reps:12,sets:3,rest:30,animType:'wall_slide',steps:['壁に向かって立ち、両腕を壁に当てます','肘を90°に曲げた位置からスタートします','壁に沿ってゆっくり腕を上方にスライドさせます','痛みが出る手前まで上げたら元に戻します','肩甲骨を背中の中央に引き寄せるのを意識'],tags:['可動域','肩甲骨']},
+  ext_rotation:{name:'外旋運動（チューブ）',body:'棘下筋・小円筋',reps:15,sets:3,rest:30,animType:'forearm_rot',steps:['肘を90°に曲げて体側につけます','チューブを持ち、前腕を外側に回します','腕がお腹から離れないよう注意します','2秒かけて回し、2秒かけて戻します','肩の後ろの筋肉に効いているのを意識'],tags:['インナーマッスル','腱板']},
+  scaption:{name:'スキャプション（肩甲骨面挙上）',body:'棘上筋・三角筋',reps:12,sets:3,rest:30,animType:'scaption',steps:['腕を体の斜め前方30〜45°（肩甲骨面）に向けます','親指を上にして腕をゆっくり持ち上げます','肩の高さまで上げ、2秒キープ','ゆっくり下ろします','痛みが出る高さでは止めましょう'],tags:['筋力強化','肩甲骨']},
+  pelvic_tilt:{name:'骨盤後傾運動（ペルビックチルト）',body:'腹筋・多裂筋',reps:15,sets:3,rest:20,animType:'pelvic_tilt',steps:['仰向けに膝を立てて寝ます','腰と床の隙間を埋めるようにお腹に力を入れます','腰を床に押し付ける感覚で骨盤を後傾します','5秒キープして緩めます','腰痛の急性期でも安全にできる体操です'],tags:['腹筋活性化','急性期対応']},
+  cat_cow:{name:'キャット＆カウ（背骨の屈伸）',body:'脊柱起立筋・腹筋・多裂筋',reps:10,sets:3,rest:20,animType:'cat_cow',steps:['四つん這いになります（手は肩の下・膝は股関節の下）','息を吐きながら背中を丸め、頭と尾骨を下げます（キャット）','息を吸いながら背中を反らせ、頭と尾骨を上げます（カウ）','ゆっくりリズミカルに繰り返します','各ポジションで2秒キープすると効果的'],tags:['可動域','体幹']},
+  bird_dog:{name:'バードドッグ',body:'多裂筋・殿筋・体幹安定筋',reps:10,sets:3,rest:30,animType:'bird_dog',steps:['四つん這いになります','右腕と左脚を同時にゆっくり伸ばします','背中が水平になるよう保ちます（腰が落ちない）','5秒キープしてゆっくり戻します','反対側（左腕・右脚）も同様に行います'],tags:['体幹安定','多裂筋']},
+  dead_bug:{name:'デッドバグ',body:'腹横筋・体幹深部筋',reps:10,sets:3,rest:30,animType:'dead_bug',steps:['仰向けになり、両腕を天井に向けて上げます','股関節と膝を90°に曲げます','お腹に力を入れ、腰を床に押し付けます','右腕と左脚を同時にゆっくり伸ばします','腰が反らないようにしながら元に戻します'],tags:['体幹深部','腹横筋']},
+  wrist_ext:{name:'リスト・エクステンション（手首伸展）',body:'短橈側手根伸筋',reps:15,sets:3,rest:20,animType:'wrist_ext',steps:['前腕をテーブルに乗せ、手首から先を出します（手の甲を上）','手首をゆっくり反らせます（背屈）','最大位置で2秒キープします','ゆっくり戻します','軽いダンベル（0.5〜1kg）を持って行うと効果的'],tags:['テニス肘','遠心性収縮']},
+  wrist_flex:{name:'リスト・フレクション（手首屈曲）',body:'橈側手根屈筋・尺側手根屈筋',reps:15,sets:3,rest:20,animType:'wrist_flex',steps:['前腕をテーブルに乗せ、手首から先を出します（手のひらを上）','手首をゆっくり手前に曲げます（掌屈）','最大位置で2秒キープします','ゆっくり戻します','野球肘（内側型）に効果的です'],tags:['野球肘','内側上顆']},
+  forearm_rot:{name:'前腕回内・回外運動',body:'回外筋・回内筋',reps:15,sets:3,rest:20,animType:'forearm_rot',steps:['肘を90°に曲げて体側につけます','ハンマーかスプーンなど棒状のものを持ちます','手のひらを上→下→上とゆっくり回します','肘が動かないよう固定します','痛みが出る手前の範囲で行います'],tags:['前腕','テニス肘']},
+  eccentric_wrist:{name:'リバースカール（遠心性収縮）',body:'手関節伸展筋群',reps:15,sets:3,rest:30,animType:'wrist_ext',steps:['テニス肘に最も効果的とされる運動です','健側の手で患側の手首を持ち上げます','健側の力を使って上げた状態から、患側だけの力でゆっくり下ろします','「ゆっくり下げる」動作がポイントです（3〜5秒）','痛みを感じても軽度なら継続可（激痛は中止）'],tags:['遠心性収縮','テニス肘']},
+  static_stretch:{name:'静的ストレッチ（患部筋）',body:'損傷筋肉',reps:30,sets:3,rest:20,animType:'slr',steps:['急性期（受傷直後48時間）は行いません','痛みが軽減した回復期から開始します','痛みが出ない範囲でゆっくり筋肉を伸ばします','30秒キープします','反動をつけないのが重要です'],tags:['可動域改善','柔軟性']},
+  active_stretch:{name:'アクティブストレッチ＆収縮',body:'損傷筋肉',reps:10,sets:3,rest:30,animType:'slr',steps:['回復期（受傷後1〜3週）から始めます','ゆっくり筋肉を収縮させます（50〜70%の力）','5秒キープ→力を抜いてストレッチ','これを繰り返します（PNFストレッチ）','痛みが増したら中止しましょう'],tags:['PNFストレッチ','回復期']},
+  nordic_curl:{name:'ノルディックカール（ハムストリングス）',body:'ハムストリングス',reps:8,sets:3,rest:60,animType:'quad_set',steps:['膝立ちになり、足首を誰かに固定してもらうか椅子の下に入れます','体をゆっくり前方に倒します（なるべくゆっくり）','限界まで倒れる前に腕で体を受け止めます','腕の力を使いながら元の姿勢に戻ります','肉離れ再発予防に最も科学的根拠がある運動です'],tags:['遠心性収縮','予防効果高']},
+  sprint_prep:{name:'スプリント準備運動',body:'下肢全体',reps:10,sets:3,rest:30,animType:'calf_raise',steps:['競技復帰直前の段階で行います','①ウォーキング→②軽ジョグ→③スキップの順に進めます','各段階で痛みがないことを確認してから次に進みます','最終的に全力疾走の80%程度まで負荷を上げます','医療者の許可を得てから行いましょう'],tags:['競技復帰','段階的負荷']}
+};
+
+const ANIMS = {
+  ankle_circle:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><style>.foot{transform-origin:100px 128px;animation:rotAnkle 2.5s linear infinite}@keyframes rotAnkle{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style></defs><circle cx="100" cy="100" r="90" fill="rgba(255,255,255,0.05)"/><circle cx="100" cy="128" r="30" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-dasharray="6 4"/><rect x="90" y="40" width="20" height="88" rx="10" fill="#90CAF9"/><circle cx="100" cy="128" r="10" fill="#64B5F6"/><g class="foot"><line x1="100" y1="128" x2="132" y2="148" stroke="#90CAF9" stroke-width="10" stroke-linecap="round"/><ellipse cx="145" cy="157" rx="18" ry="9" fill="#90CAF9" transform="rotate(30,145,157)"/><circle cx="100" cy="128" r="5" fill="#BBDEFB"/></g><text x="100" y="195" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">足首をゆっくり回す</text></svg>`,
+  calf_raise:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><style>.body-g{transform-origin:100px 60px;animation:calfUp 2s ease-in-out infinite}@keyframes calfUp{0%,100%{transform:translateY(0)}50%{transform:translateY(-22px)}}.heel{transform-origin:85px 170px;animation:heelUp 2s ease-in-out infinite}@keyframes heelUp{0%,100%{transform:rotate(0deg)}50%{transform:rotate(35deg)}}</style></defs><rect x="50" y="168" width="100" height="8" rx="4" fill="rgba(255,255,255,0.2)"/><g class="body-g"><ellipse cx="100" cy="38" rx="20" ry="22" fill="#90CAF9"/><rect x="82" y="58" width="36" height="60" rx="10" fill="#64B5F6"/><rect x="82" y="108" width="16" height="62" rx="8" fill="#90CAF9"/><rect x="102" y="108" width="16" height="62" rx="8" fill="#90CAF9"/></g><g class="heel"><ellipse cx="85" cy="172" rx="22" ry="8" fill="#BBDEFB"/></g><ellipse cx="115" cy="172" rx="22" ry="8" fill="#BBDEFB"/><text x="100" y="195" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">踵をゆっくり上げ下げ</text></svg>`,
+  slr:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><style>.leg-r{transform-origin:80px 110px;animation:legUp 2.5s ease-in-out infinite}@keyframes legUp{0%,100%{transform:rotate(0deg)}45%,55%{transform:rotate(-38deg)}}</style></defs><rect x="20" y="108" width="160" height="12" rx="6" fill="rgba(255,255,255,0.2)"/><ellipse cx="60" cy="78" rx="18" ry="20" fill="#90CAF9"/><rect x="46" y="94" width="100" height="22" rx="11" fill="#64B5F6"/><rect x="120" y="98" width="18" height="62" rx="9" fill="#90CAF9" transform="rotate(15,120,108)"/><ellipse cx="130" cy="162" rx="16" ry="7" fill="#BBDEFB" transform="rotate(15,130,162)"/><g class="leg-r"><rect x="68" y="110" width="18" height="70" rx="9" fill="#90CAF9"/><ellipse cx="77" cy="182" rx="16" ry="7" fill="#BBDEFB"/></g><text x="100" y="198" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">足をまっすぐ上げる</text></svg>`,
+  quad_set:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><style>.quad{animation:quadPulse 2s ease-in-out infinite}@keyframes quadPulse{0%,100%{opacity:0.3}50%{opacity:1}}</style></defs><rect x="20" y="108" width="160" height="12" rx="6" fill="rgba(255,255,255,0.2)"/><ellipse cx="55" cy="75" rx="18" ry="20" fill="#90CAF9"/><rect x="44" y="93" width="100" height="22" rx="11" fill="#64B5F6"/><rect x="44" y="110" width="20" height="68" rx="10" fill="#90CAF9"/><ellipse cx="54" cy="180" rx="18" ry="7" fill="#BBDEFB"/><rect x="100" y="106" width="20" height="68" rx="10" fill="#90CAF9"/><ellipse cx="110" cy="178" rx="18" ry="7" fill="#BBDEFB"/><rect x="44" y="105" width="80" height="12" rx="6" fill="rgba(255,180,0,0.5)" class="quad"/><text x="100" y="198" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">膝の裏を床に押しつける</text></svg>`,
+  mini_squat:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><style>.sq-body{transform-origin:100px 90px;animation:sqDown 2.5s ease-in-out infinite}@keyframes sqDown{0%,100%{transform:translateY(0)}50%{transform:translateY(20px)}}</style></defs><rect x="30" y="178" width="140" height="10" rx="5" fill="rgba(255,255,255,0.2)"/><g class="sq-body"><ellipse cx="100" cy="36" rx="20" ry="22" fill="#90CAF9"/><rect x="82" y="56" width="36" height="68" rx="10" fill="#64B5F6"/><rect x="82" y="114" width="16" height="55" rx="8" fill="#90CAF9"/><rect x="102" y="114" width="16" height="55" rx="8" fill="#90CAF9"/><ellipse cx="90" cy="172" rx="18" ry="7" fill="#BBDEFB"/><ellipse cx="110" cy="172" rx="18" ry="7" fill="#BBDEFB"/></g><text x="100" y="198" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">膝を軽く曲げる</text></svg>`,
+  step_up:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><style>.su-body{animation:stepAnim 2.5s ease-in-out infinite}@keyframes stepAnim{0%,100%{transform:translateY(18px)}50%{transform:translateY(0px)}}</style></defs><rect x="60" y="160" width="120" height="30" rx="6" fill="rgba(255,255,255,0.3)"/><rect x="20" y="178" width="60" height="12" rx="4" fill="rgba(255,255,255,0.15)"/><g class="su-body"><ellipse cx="100" cy="38" rx="18" ry="20" fill="#90CAF9"/><rect x="84" y="56" width="32" height="58" rx="9" fill="#64B5F6"/><rect x="84" y="106" width="14" height="60" rx="7" fill="#90CAF9"/><rect x="102" y="106" width="14" height="60" rx="7" fill="#90CAF9"/><ellipse cx="91" cy="168" rx="16" ry="7" fill="#BBDEFB"/><ellipse cx="109" cy="168" rx="16" ry="7" fill="#BBDEFB"/></g><text x="100" y="199" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">台に乗って立ち上がる</text></svg>`,
+  pendulum:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><style>.arm{transform-origin:80px 80px;animation:pendSwing 2s ease-in-out infinite}@keyframes pendSwing{0%{transform:rotate(-28deg)}50%{transform:rotate(28deg)}100%{transform:rotate(-28deg)}}</style></defs><rect x="30" y="60" width="100" height="14" rx="7" fill="rgba(255,255,255,0.3)"/><ellipse cx="110" cy="50" rx="18" ry="20" fill="#90CAF9"/><rect x="95" y="68" width="18" height="46" rx="9" fill="#64B5F6"/><rect x="95" y="72" width="14" height="28" rx="7" fill="#90CAF9"/><circle cx="80" cy="80" r="7" fill="#64B5F6"/><g class="arm"><line x1="80" y1="80" x2="80" y2="170" stroke="#90CAF9" stroke-width="12" stroke-linecap="round"/><ellipse cx="80" cy="172" rx="16" ry="8" fill="#BBDEFB"/><circle cx="80" cy="80" r="30" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-dasharray="5 4"/></g><text x="100" y="198" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">腕を振り子のように動かす</text></svg>`,
+  wall_slide:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><style>.arms{transform-origin:100px 80px;animation:slideUp 2.5s ease-in-out infinite}@keyframes slideUp{0%,100%{transform:translateY(20px)}50%{transform:translateY(0px)}}</style></defs><rect x="160" y="10" width="20" height="190" rx="4" fill="rgba(255,255,255,0.2)"/><ellipse cx="90" cy="38" rx="18" ry="20" fill="#90CAF9"/><rect x="75" y="56" width="32" height="62" rx="9" fill="#64B5F6"/><rect x="75" y="110" width="14" height="58" rx="7" fill="#90CAF9"/><rect x="93" y="110" width="14" height="58" rx="7" fill="#90CAF9"/><ellipse cx="82" cy="170" rx="16" ry="7" fill="#BBDEFB"/><ellipse cx="100" cy="170" rx="16" ry="7" fill="#BBDEFB"/><g class="arms"><line x1="92" y1="72" x2="158" y2="90" stroke="#BBDEFB" stroke-width="9" stroke-linecap="round"/><line x1="92" y1="72" x2="158" y2="110" stroke="#BBDEFB" stroke-width="9" stroke-linecap="round"/><circle cx="158" cy="90" r="6" fill="#90CAF9"/><circle cx="158" cy="110" r="6" fill="#90CAF9"/></g><text x="85" y="198" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">壁に沿って腕を上げる</text></svg>`,
+  forearm_rot:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><style>.fa{transform-origin:90px 100px;animation:rotFA 2s ease-in-out infinite}@keyframes rotFA{0%,100%{transform:rotate(-40deg)}50%{transform:rotate(40deg)}}</style></defs><line x1="60" y1="60" x2="90" y2="100" stroke="#90CAF9" stroke-width="18" stroke-linecap="round"/><circle cx="90" cy="100" r="12" fill="#64B5F6"/><g class="fa"><line x1="90" y1="100" x2="90" y2="170" stroke="#90CAF9" stroke-width="14" stroke-linecap="round"/><ellipse cx="90" cy="172" rx="22" ry="10" fill="#BBDEFB"/><line x1="80" y1="168" x2="100" y2="176" stroke="#64B5F6" stroke-width="3"/></g><path d="M 115 90 A 30 30 0 0 1 115 150" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-dasharray="5 3"/><text x="100" y="198" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">前腕を回内・回外する</text></svg>`,
+  scaption:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><style>.sa{transform-origin:100px 72px;animation:scapRaise 2.5s ease-in-out infinite}@keyframes scapRaise{0%,100%{transform:rotate(55deg)}50%{transform:rotate(15deg)}}.sa2{transform-origin:100px 72px;animation:scapRaise2 2.5s ease-in-out infinite}@keyframes scapRaise2{0%,100%{transform:rotate(-55deg)}50%{transform:rotate(-15deg)}}</style></defs><ellipse cx="100" cy="40" rx="18" ry="20" fill="#90CAF9"/><rect x="86" y="58" width="28" height="56" rx="8" fill="#64B5F6"/><g class="sa"><line x1="100" y1="72" x2="148" y2="90" stroke="#BBDEFB" stroke-width="10" stroke-linecap="round"/><ellipse cx="152" cy="92" rx="10" ry="6" fill="#90CAF9" transform="rotate(20,152,92)"/></g><g class="sa2"><line x1="100" y1="72" x2="52" y2="90" stroke="#BBDEFB" stroke-width="10" stroke-linecap="round"/><ellipse cx="48" cy="92" rx="10" ry="6" fill="#90CAF9" transform="rotate(-20,48,92)"/></g><rect x="87" y="110" width="12" height="58" rx="6" fill="#90CAF9"/><rect x="101" y="110" width="12" height="58" rx="6" fill="#90CAF9"/><ellipse cx="93" cy="170" rx="14" ry="6" fill="#BBDEFB"/><ellipse cx="107" cy="170" rx="14" ry="6" fill="#BBDEFB"/><text x="100" y="195" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">斜め前方に腕を上げる</text></svg>`,
+  pelvic_tilt:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><style>.pelvis{transform-origin:100px 120px;animation:tiltPelvis 2.5s ease-in-out infinite}@keyframes tiltPelvis{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-8deg)}}.gap{animation:gapChange 2.5s ease-in-out infinite}@keyframes gapChange{0%,100%{opacity:1}50%{opacity:0}}</style></defs><rect x="20" y="118" width="160" height="10" rx="5" fill="rgba(255,255,255,0.2)"/><ellipse cx="66" cy="68" rx="16" ry="18" fill="#90CAF9"/><rect x="54" y="84" width="80" height="18" rx="9" fill="#64B5F6"/><g class="pelvis"><rect x="64" y="100" width="72" height="34" rx="12" fill="#90CAF9"/><rect x="64" y="130" width="14" height="52" rx="7" fill="#90CAF9"/><rect x="110" y="130" width="14" height="52" rx="7" fill="#90CAF9"/><ellipse cx="71" cy="184" rx="15" ry="6" fill="#BBDEFB"/><ellipse cx="117" cy="184" rx="15" ry="6" fill="#BBDEFB"/></g><ellipse cx="100" cy="118" rx="36" ry="5" fill="rgba(255,180,0,0.35)" class="gap"/><text x="100" y="199" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">腰を床に押しつける</text></svg>`,
+  cat_cow:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><style>.head-cc{transform-origin:40px 96px;animation:headCC 2.5s ease-in-out infinite}@keyframes headCC{0%,100%{transform:rotate(20deg)}50%{transform:rotate(-20deg)}}.tail-cc{transform-origin:160px 96px;animation:tailCC 2.5s ease-in-out infinite}@keyframes tailCC{0%,100%{transform:rotate(-20deg)}50%{transform:rotate(20deg)}}</style></defs><g class="head-cc"><circle cx="28" cy="88" r="14" fill="#90CAF9"/><line x1="40" y1="92" x2="20" y2="80" stroke="#90CAF9" stroke-width="5" stroke-linecap="round"/></g><path d="M 40 100 Q 100 118 160 100" stroke="#64B5F6" stroke-width="14" fill="none" stroke-linecap="round"><animate attributeName="d" values="M 40 100 Q 100 118 160 100;M 40 100 Q 100 80 160 100;M 40 100 Q 100 118 160 100" dur="2.5s" repeatCount="indefinite"/></path><line x1="60" y1="100" x2="60" y2="140" stroke="#90CAF9" stroke-width="10" stroke-linecap="round"/><line x1="100" y1="100" x2="100" y2="140" stroke="#90CAF9" stroke-width="10" stroke-linecap="round"/><line x1="140" y1="100" x2="140" y2="140" stroke="#90CAF9" stroke-width="10" stroke-linecap="round"/><line x1="80" y1="100" x2="80" y2="140" stroke="#90CAF9" stroke-width="10" stroke-linecap="round"/><ellipse cx="60" cy="144" rx="10" ry="5" fill="#BBDEFB"/><ellipse cx="80" cy="144" rx="10" ry="5" fill="#BBDEFB"/><ellipse cx="120" cy="144" rx="10" ry="5" fill="#BBDEFB"/><ellipse cx="140" cy="144" rx="10" ry="5" fill="#BBDEFB"/><g class="tail-cc"><path d="M 160 100 Q 180 88 172 76" stroke="#90CAF9" stroke-width="5" fill="none" stroke-linecap="round"/></g><text x="100" y="175" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">背中を丸めたり反らせたり</text></svg>`,
+  bird_dog:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><style>.bd-arm{transform-origin:65px 88px;animation:bdArm 2.5s ease-in-out infinite}@keyframes bdArm{0%,40%{transform:rotate(60deg)}50%,90%{transform:rotate(0deg)}100%{transform:rotate(60deg)}}.bd-leg{transform-origin:135px 92px;animation:bdLeg 2.5s ease-in-out infinite}@keyframes bdLeg{0%,40%{transform:rotate(-55deg)}50%,90%{transform:rotate(0deg)}100%{transform:rotate(-55deg)}}</style></defs><line x1="65" y1="92" x2="135" y2="92" stroke="#64B5F6" stroke-width="16" stroke-linecap="round"/><circle cx="50" cy="82" r="14" fill="#90CAF9"/><line x1="80" y1="92" x2="80" y2="140" stroke="#90CAF9" stroke-width="10" stroke-linecap="round"/><line x1="120" y1="92" x2="120" y2="140" stroke="#90CAF9" stroke-width="10" stroke-linecap="round"/><ellipse cx="80" cy="144" rx="10" ry="5" fill="#BBDEFB"/><ellipse cx="120" cy="144" rx="10" ry="5" fill="#BBDEFB"/><g class="bd-arm"><line x1="65" y1="88" x2="20" y2="88" stroke="#BBDEFB" stroke-width="10" stroke-linecap="round"/><ellipse cx="16" cy="88" rx="10" ry="5" fill="#90CAF9"/></g><g class="bd-leg"><line x1="135" y1="92" x2="182" y2="92" stroke="#BBDEFB" stroke-width="10" stroke-linecap="round"/><ellipse cx="186" cy="92" rx="10" ry="5" fill="#90CAF9"/></g><text x="100" y="170" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">対側の手足を伸ばす</text></svg>`,
+  dead_bug:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><style>.db-ra{transform-origin:105px 72px;animation:dbRA 2.5s ease-in-out infinite}@keyframes dbRA{0%,100%{transform:rotate(-80deg)}50%{transform:rotate(0deg)}}.db-ll{transform-origin:88px 112px;animation:dbLL 2.5s ease-in-out infinite}@keyframes dbLL{0%,100%{transform:rotate(70deg)}50%{transform:rotate(0deg)}}</style></defs><rect x="20" y="98" width="160" height="10" rx="5" fill="rgba(255,255,255,0.18)"/><ellipse cx="62" cy="72" rx="16" ry="17" fill="#90CAF9"/><rect x="55" y="87" width="90" height="24" rx="12" fill="#64B5F6"/><line x1="70" y1="94" x2="55" y2="72" stroke="#90CAF9" stroke-width="9" stroke-linecap="round"/><ellipse cx="52" cy="68" rx="9" ry="5" fill="#BBDEFB" transform="rotate(-30,52,68)"/><g class="db-ra"><line x1="105" y1="72" x2="105" y2="42" stroke="#BBDEFB" stroke-width="9" stroke-linecap="round"/><ellipse cx="105" cy="38" rx="9" ry="5" fill="#90CAF9"/></g><rect x="85" y="107" width="16" height="52" rx="8" fill="#90CAF9"/><rect x="104" y="107" width="16" height="52" rx="8" fill="#90CAF9"/><ellipse cx="93" cy="161" rx="14" ry="6" fill="#BBDEFB"/><g class="db-ll"><rect x="80" y="112" width="16" height="52" rx="8" fill="#BBDEFB"/><ellipse cx="88" cy="166" rx="14" ry="6" fill="#90CAF9"/></g><text x="100" y="190" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">対側の腕と脚を伸ばす</text></svg>`,
+  wrist_ext:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><style>.hand-e{transform-origin:130px 110px;animation:wristE 2s ease-in-out infinite}@keyframes wristE{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-30deg)}}</style></defs><rect x="30" y="106" width="120" height="10" rx="5" fill="rgba(255,255,255,0.22)"/><line x1="40" y1="110" x2="130" y2="110" stroke="#90CAF9" stroke-width="16" stroke-linecap="round"/><circle cx="130" cy="110" r="10" fill="#64B5F6"/><g class="hand-e"><line x1="130" y1="110" x2="168" y2="110" stroke="#BBDEFB" stroke-width="14" stroke-linecap="round"/><ellipse cx="172" cy="110" rx="12" ry="16" fill="#90CAF9"/><line x1="162" y1="96" x2="178" y2="96" stroke="#BBDEFB" stroke-width="5" stroke-linecap="round"/><line x1="162" y1="104" x2="180" y2="104" stroke="#BBDEFB" stroke-width="5" stroke-linecap="round"/><line x1="162" y1="116" x2="180" y2="116" stroke="#BBDEFB" stroke-width="5" stroke-linecap="round"/><line x1="162" y1="124" x2="178" y2="124" stroke="#BBDEFB" stroke-width="5" stroke-linecap="round"/></g><path d="M 148 90 A 22 22 0 0 1 148 132" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-dasharray="4 3"/><text x="100" y="165" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">手首を上下に動かす</text></svg>`,
+  wrist_flex:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><style>.hand-f{transform-origin:130px 110px;animation:wristF 2s ease-in-out infinite}@keyframes wristF{0%,100%{transform:rotate(0deg)}50%{transform:rotate(28deg)}}</style></defs><rect x="30" y="106" width="120" height="10" rx="5" fill="rgba(255,255,255,0.22)"/><line x1="40" y1="110" x2="130" y2="110" stroke="#90CAF9" stroke-width="16" stroke-linecap="round"/><circle cx="130" cy="110" r="10" fill="#64B5F6"/><g class="hand-f"><line x1="130" y1="110" x2="168" y2="110" stroke="#BBDEFB" stroke-width="14" stroke-linecap="round"/><ellipse cx="172" cy="110" rx="12" ry="16" fill="#90CAF9"/><line x1="162" y1="96" x2="178" y2="96" stroke="#BBDEFB" stroke-width="5" stroke-linecap="round"/><line x1="162" y1="104" x2="180" y2="104" stroke="#BBDEFB" stroke-width="5" stroke-linecap="round"/><line x1="162" y1="116" x2="180" y2="116" stroke="#BBDEFB" stroke-width="5" stroke-linecap="round"/><line x1="162" y1="124" x2="178" y2="124" stroke="#BBDEFB" stroke-width="5" stroke-linecap="round"/></g><path d="M 148 130 A 22 22 0 0 0 148 88" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-dasharray="4 3"/><text x="100" y="165" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">手首を手前に曲げる</text></svg>`,
+  balance_stand:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><style>.bs-body{transform-origin:100px 100px;animation:balWobble 3s ease-in-out infinite}@keyframes balWobble{0%,100%{transform:rotate(-3deg)}25%{transform:rotate(3deg)}75%{transform:rotate(-2deg)}}</style></defs><ellipse cx="100" cy="186" rx="40" ry="8" fill="rgba(255,255,255,0.2)"/><g class="bs-body"><ellipse cx="100" cy="38" rx="18" ry="20" fill="#90CAF9"/><rect x="85" y="56" width="30" height="62" rx="9" fill="#64B5F6"/><rect x="85" y="108" width="14" height="70" rx="7" fill="#90CAF9"/><ellipse cx="92" cy="180" rx="16" ry="7" fill="#BBDEFB"/><line x1="106" y1="114" x2="106" y2="148" stroke="#90CAF9" stroke-width="12" stroke-linecap="round"/><line x1="106" y1="148" x2="118" y2="170" stroke="#90CAF9" stroke-width="10" stroke-linecap="round"/></g><text x="100" y="200" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="11">片足立ち30秒</text></svg>`
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  mode:'patient', currentDisease:null, currentStage:0, currentExercise:null,
+  screen:'splash', screenHistory:[],
+  timer:{active:false,seconds:30,elapsed:0,interval:null},
+  setsCompleted:0,
+  calYear:new Date().getFullYear(), calMonth:new Date().getMonth(),
+  ptDisease:'ankle',
+  exerciseStartTime:null, exerciseStartClock:null
+};
+
+// ============================================================
+// DATA HELPERS
+// ============================================================
+function getCustom(exId) {
+  const saved = JSON.parse(localStorage.getItem('rx_'+exId)||'null');
+  const ex = EXERCISES[exId];
+  return saved||{reps:ex.reps,sets:ex.sets,rest:ex.rest,note:'',timeOfDay:''};
+}
+function getTodayKey() {
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function getTodayDone() {
+  const raw=JSON.parse(localStorage.getItem('done_'+getTodayKey())||'[]');
+  return raw.map(item=>typeof item==='string'?{id:item,completedAt:'—',duration:0,sets:0}:item);
+}
+function setTodayDone(arr){localStorage.setItem('done_'+getTodayKey(),JSON.stringify(arr));}
+function isDone(doneArr,exId){return doneArr.some(d=>d.id===exId);}
+function getDoneEntry(doneArr,exId){return doneArr.find(d=>d.id===exId);}
+function getHistory(){return JSON.parse(localStorage.getItem('history')||'[]');}
+function formatDuration(secs) {
+  if(!secs||secs<=0)return '—';
+  if(secs<60)return secs+'秒';
+  const m=Math.floor(secs/60),s=secs%60;
+  return s>0?`${m}分${s}秒`:`${m}分`;
+}
+function nowClock() {
+  const n=new Date();
+  return `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+}
+function todayTotalSecs() {
+  return getTodayDone().reduce((s,d)=>s+(d.duration||0),0);
+}
+function monthTotalSecs() {
+  const hist=getHistory();
+  const mk=getTodayKey().slice(0,7);
+  return hist.filter(h=>h.date&&h.date.startsWith(mk)).reduce((s,h)=>s+(h.totalTime||0),0);
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el=document.getElementById('s-'+id);
+  if(el)el.classList.add('active');
+  state.screen=id;
+  const bnav=document.getElementById('bnav');
+  bnav.style.display=['splash','detail'].includes(id)?'none':'flex';
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  const nm={home:'ni-home',list:'ni-list',check:'ni-check',progress:'ni-progress',pt:'ni-pt'};
+  if(nm[id])document.getElementById(nm[id])?.classList.add('active');
+}
+function navTo(id) {
+  if(id==='home'){renderHome();return;}
+  if(id==='check'){renderCheck();return;}
+  if(id==='progress'){renderProgress();return;}
+  if(id==='pt'){renderPT();return;}
+  if(id==='list'){
+    if(state.currentDisease)renderList(state.currentDisease);
+    else renderHome();
+    return;
+  }
+  state.screenHistory.push(state.screen);
+  showScreen(id);
+}
+function goBack() {
+  const prev=state.screenHistory.pop();
+  if(prev){
+    if(prev==='list')renderList(state.currentDisease);
+    else if(prev==='home')renderHome();
+    else showScreen(prev);
+  }else renderHome();
+}
+
+// ============================================================
+// SPLASH
+// ============================================================
+function startApp(mode) {
+  state.mode=mode;
+  localStorage.setItem('mode',mode);
+  renderHome();
+  state.screenHistory=[];
+}
+
+// ============================================================
+// HOME
+// ============================================================
+function renderHome() {
+  const hr=new Date().getHours();
+  document.getElementById('home-greeting').textContent=hr<12?'おはようございます':hr<17?'こんにちは':'こんばんは';
+  const hist=getHistory();
+  document.getElementById('stat-streak').textContent=calcStreak(hist);
+  const secs=todayTotalSecs();
+  document.getElementById('stat-time').textContent=secs>0?Math.ceil(secs/60)+'分':'0分';
+  const todayDone=getTodayDone();
+  if(state.currentDisease){
+    const d=DISEASES.find(d=>d.id===state.currentDisease);
+    const pct=d?Math.round(todayDone.filter(x=>d.exercises.includes(x.id)).length/d.exercises.length*100):0;
+    document.getElementById('stat-today').textContent=pct+'%';
+    document.getElementById('home-name').textContent=d?d.name+'のリハビリ':'疾患を選んでください';
+  }else{
+    document.getElementById('stat-today').textContent='—';
+    document.getElementById('home-name').textContent='疾患を選んでください';
+  }
+  const grid=document.getElementById('disease-grid');
+  grid.innerHTML=DISEASES.map(d=>{
+    const doneCount=todayDone.filter(x=>d.exercises.includes(x.id)).length;
+    const pct=Math.round(doneCount/d.exercises.length*100);
+    return `<div class="d-card" style="--dc:${d.color}" onclick="selectDisease('${d.id}')">
+      <div class="d-ico">${d.icon}</div>
+      <div class="d-name">${d.name}</div>
+      <div class="d-sub">${d.desc}</div>
+      <div class="d-cnt">${d.exercises.length}種</div>
+      <div class="d-done-bar"><div class="d-done-fill" style="width:${pct}%;background:${d.color}"></div></div>
+    </div>`;
+  }).join('');
+  state.screenHistory.push(state.screen);
+  showScreen('home');
+}
+function calcStreak(hist) {
+  if(!hist.length)return 0;
+  const dates=[...new Set(hist.map(h=>h.date))].sort().reverse();
+  let streak=0,d=new Date();
+  for(let i=0;i<30;i++){
+    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    if(dates.includes(key)){streak++;d.setDate(d.getDate()-1);}
+    else if(i===0){d.setDate(d.getDate()-1);}
+    else break;
+  }
+  return streak;
+}
+function selectDisease(id){state.currentDisease=id;state.currentStage=0;renderList(id);}
+
+// ============================================================
+// EXERCISE LIST
+// ============================================================
+function renderList(diseaseId) {
+  const d=DISEASES.find(x=>x.id===diseaseId);
+  if(!d)return;
+  document.getElementById('list-title').textContent=d.icon+' '+d.name;
+  document.getElementById('stage-wrap').innerHTML=d.stages.map((s,i)=>
+    `<div class="stage-chip ${i===state.currentStage?'active':''}" onclick="setStage(${i})">${s}</div>`
+  ).join('');
+  renderExerciseItems(d);
+  state.screenHistory.push(state.screen);
+  showScreen('list');
+}
+function setStage(i) {
+  state.currentStage=i;
+  document.querySelectorAll('.stage-chip').forEach((c,j)=>c.classList.toggle('active',j===i));
+  renderExerciseItems(DISEASES.find(x=>x.id===state.currentDisease));
+}
+function renderExerciseItems(d) {
+  const todayDone=getTodayDone();
+  document.getElementById('exercise-list').innerHTML=d.exercises.map(exId=>{
+    const ex=EXERCISES[exId];
+    const custom=getCustom(exId);
+    const entry=getDoneEntry(todayDone,exId);
+    const done=!!entry;
+    const timeTag=custom.timeOfDay?`<span class="tag time-tag">⏰${custom.timeOfDay}</span>`:'';
+    const timeDone=done&&entry.completedAt&&entry.completedAt!=='—'?`<div class="ex-time-done">✓ ${entry.completedAt} 実施 ${entry.duration?'／'+formatDuration(entry.duration):''}</div>`:'';
+    return `<div class="ex-item" onclick="openExercise('${exId}')">
+      <div class="ex-thumb">${ANIMS[ex.animType]||'🏋️'}</div>
+      <div class="ex-info">
+        <div class="ex-name">${ex.name}</div>
+        <div class="ex-meta">${ex.body} ／ ${custom.reps}回 × ${custom.sets}セット ／ 休憩${custom.rest}秒</div>
+        <div class="ex-tags">${ex.tags.map(t=>`<span class="tag ${done?'done-tag':''}">${t}</span>`).join('')}${timeTag}</div>
+        ${timeDone}
+      </div>
+      <div class="ex-chk ${done?'done':''}">${done?'✓':''}</div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// EXERCISE DETAIL
+// ============================================================
+function openExercise(exId) {
+  state.currentExercise=exId;
+  state.exerciseStartTime=Date.now();
+  state.exerciseStartClock=nowClock();
+  const ex=EXERCISES[exId];
+  const custom=getCustom(exId);
+  document.getElementById('detail-title').textContent=ex.name;
+  document.getElementById('anim-box').innerHTML=(ANIMS[ex.animType]||'<div style="color:#fff;font-size:48px;text-align:center">🏋️</div>')+`<div class="anim-label">${ex.body}</div>`;
+  document.getElementById('d-name').textContent=ex.name;
+  document.getElementById('d-meta').textContent=ex.tags.join(' ／ ');
+  document.getElementById('d-reps').textContent=custom.reps+'回';
+  document.getElementById('d-sets').textContent=custom.sets+'セット';
+  document.getElementById('d-rest').textContent=custom.rest+'秒';
+  document.getElementById('d-timeofday').textContent=custom.timeOfDay||'—';
+  document.getElementById('d-pt-note').innerHTML=custom.note?`<div class="pt-note-display">📌 PT指示：${custom.note}</div>`:'';
+  document.getElementById('steps-list').innerHTML=ex.steps.map((s,i)=>
+    `<div class="step-item"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></div>`
+  ).join('');
+  state.setsCompleted=0;
+  renderSetTracker(custom.sets);
+  state.timer={active:false,seconds:custom.rest,elapsed:0,interval:null};
+  updateTimerUI();
+  document.getElementById('elapsed-info').textContent=`開始：${state.exerciseStartClock}`;
+  state.screenHistory.push(state.screen);
+  showScreen('detail');
+}
+function renderSetTracker(sets) {
+  document.getElementById('set-tracker').innerHTML=Array.from({length:sets},(_,i)=>
+    `<div class="set-dot ${i<state.setsCompleted?'filled':''}" onclick="toggleSet(${i})">${i+1}</div>`
+  ).join('');
+}
+function toggleSet(i) {
+  state.setsCompleted=i+1;
+  const custom=getCustom(state.currentExercise);
+  renderSetTracker(custom.sets);
+  const elapsed=Math.round((Date.now()-state.exerciseStartTime)/1000);
+  document.getElementById('elapsed-info').textContent=`開始：${state.exerciseStartClock} ／ 経過：${formatDuration(elapsed)}`;
+  if(state.setsCompleted>=custom.sets)showToast('全セット完了！お疲れ様です ✓');
+}
+
+// ============================================================
+// TIMER
+// ============================================================
+function toggleTimer(){state.timer.active?pauseTimer():startTimer();}
+function startTimer() {
+  if(state.timer.interval)clearInterval(state.timer.interval);
+  state.timer.active=true;
+  document.getElementById('timer-btn').textContent='⏸ 一時停止';
+  state.timer.interval=setInterval(()=>{
+    state.timer.elapsed++;
+    if(state.timer.elapsed>=state.timer.seconds){
+      clearInterval(state.timer.interval);
+      state.timer.active=false;
+      state.timer.elapsed=0;
+      document.getElementById('timer-btn').textContent='▶ タイマー開始';
+      showToast('休憩終了！次のセットへ');
+      updateTimerUI();return;
+    }
+    updateTimerUI();
+  },1000);
+}
+function pauseTimer(){clearInterval(state.timer.interval);state.timer.active=false;document.getElementById('timer-btn').textContent='▶ タイマー再開';}
+function resetTimer(){clearInterval(state.timer.interval);state.timer.active=false;state.timer.elapsed=0;document.getElementById('timer-btn').textContent='▶ タイマー開始';updateTimerUI();}
+function updateTimerUI() {
+  const rem=state.timer.seconds-state.timer.elapsed;
+  document.getElementById('timer-num').textContent=`${Math.floor(rem/60)}:${String(rem%60).padStart(2,'0')}`;
+  const offset=326.7*(1-state.timer.elapsed/state.timer.seconds);
+  document.getElementById('timer-ring').style.strokeDashoffset=Math.max(0,offset);
+}
+function markDone() {
+  const duration=Math.round((Date.now()-state.exerciseStartTime)/1000);
+  const done=getTodayDone();
+  const idx=done.findIndex(d=>d.id===state.currentExercise);
+  const entry={id:state.currentExercise,completedAt:nowClock(),duration:Math.max(1,duration),sets:state.setsCompleted};
+  if(idx>=0)done[idx]=entry;else done.push(entry);
+  setTodayDone(done);
+  showToast(`✓ 完了！（${formatDuration(entry.duration)}）`);
+  setTimeout(()=>goBack(),1000);
+}
+
+// ============================================================
+// DAILY CHECK
+// ============================================================
+function renderCheck() {
+  const d=new Date();
+  const days=['日','月','火','水','木','金','土'];
+  document.getElementById('check-date').textContent=`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${days[d.getDay()]}）`;
+  const disease=state.currentDisease?DISEASES.find(x=>x.id===state.currentDisease):null;
+  document.getElementById('check-disease-title').textContent=disease?disease.icon+' '+disease.name+'の体操チェック':'体操チェック';
+  const todayDone=getTodayDone();
+  const exercises=disease?disease.exercises:Object.keys(EXERCISES).slice(0,6);
+  document.getElementById('check-list').innerHTML=exercises.map(exId=>{
+    const ex=EXERCISES[exId];
+    const entry=getDoneEntry(todayDone,exId);
+    const done=!!entry;
+    const timeInfo=done&&entry.completedAt&&entry.completedAt!=='—'?`<span style="font-size:10px;color:var(--success);font-weight:600">${entry.completedAt} ${entry.duration?formatDuration(entry.duration):''}</span>`:'';
+    return `<div class="ex-item" onclick="toggleCheck('${exId}')">
+      <div class="ex-thumb" style="width:48px;height:48px">${ANIMS[ex.animType]||'🏋️'}</div>
+      <div class="ex-info">
+        <div class="ex-name">${ex.name}</div>
+        <div class="ex-meta">${ex.body} ${timeInfo}</div>
+      </div>
+      <div class="ex-chk ${done?'done':''}" id="chk-${exId}">${done?'✓':''}</div>
+    </div>`;
+  }).join('');
+  const savedPain=localStorage.getItem('pain_'+getTodayKey())||'';
+  const colors=['#38A169','#4CAF50','#8BC34A','#CDDC39','#FFEB3B','#FFC107','#FF9800','#FF5722','#F44336','#D32F2F','#B71C1C'];
+  document.getElementById('pain-scale').innerHTML=Array.from({length:11},(_,i)=>
+    `<button class="pain-btn ${savedPain==i?'selected':''}" style="${savedPain==i?`background:${colors[i]}`:''}" onclick="selectPain(${i},'${colors[i]}')" data-v="${i}">${i}</button>`
+  ).join('');
+  state.screenHistory.push(state.screen);
+  showScreen('check');
+}
+function toggleCheck(exId) {
+  const done=getTodayDone();
+  const chk=document.getElementById('chk-'+exId);
+  const idx=done.findIndex(d=>d.id===exId);
+  if(idx>=0){
+    done.splice(idx,1);
+    chk.classList.remove('done');chk.textContent='';
+  }else{
+    done.push({id:exId,completedAt:nowClock(),duration:0,sets:0});
+    chk.classList.add('done');chk.textContent='✓';
+  }
+  setTodayDone(done);
+}
+function selectPain(val,color) {
+  localStorage.setItem('pain_'+getTodayKey(),val);
+  document.querySelectorAll('.pain-btn').forEach(b=>{b.classList.remove('selected');b.style.background='';b.style.color='';});
+  const btn=document.querySelector(`.pain-btn[data-v="${val}"]`);
+  if(btn){btn.classList.add('selected');btn.style.background=color;btn.style.color='#fff';}
+}
+function submitCheck() {
+  const done=getTodayDone();
+  const pain=localStorage.getItem('pain_'+getTodayKey())||'—';
+  const memo=document.getElementById('memo-input').value;
+  const disease=state.currentDisease||'未設定';
+  const totalTime=todayTotalSecs();
+  const hist=getHistory();
+  const entry={date:getTodayKey(),disease,done:done.length,pain,memo,totalTime,exercises:done,timestamp:Date.now()};
+  const existing=hist.findIndex(h=>h.date===getTodayKey());
+  if(existing>=0)hist[existing]=entry;else hist.push(entry);
+  localStorage.setItem('history',JSON.stringify(hist));
+  showToast('📤 記録を保存しました！');
+  setTimeout(()=>renderProgress(),800);
+}
+
+// ============================================================
+// PROGRESS
+// ============================================================
+function renderProgress() {
+  const hist=getHistory();
+  document.getElementById('p-streak').textContent=calcStreak(hist);
+  document.getElementById('p-total').textContent=hist.length;
+  const mSecs=monthTotalSecs();
+  document.getElementById('p-time').textContent=mSecs>0?Math.ceil(mSecs/60)+'分':'0分';
+  renderCalendar();
+  renderHistory(hist);
+  state.screenHistory.push(state.screen);
+  showScreen('progress');
+}
+function renderCalendar() {
+  const hist=getHistory();
+  const histDates={};hist.forEach(h=>{histDates[h.date]=h;});
+  const y=state.calYear,m=state.calMonth;
+  const monthNames=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  document.getElementById('cal-month').textContent=`${y}年 ${monthNames[m]}`;
+  const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate(),today=getTodayKey();
+  const dows=['日','月','火','水','木','金','土'];
+  let html=dows.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0;i<first;i++)html+=`<div class="cal-cell empty"></div>`;
+  for(let d=1;d<=days;d++){
+    const key=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday=key===today;const entry=histDates[key];
+    let cls=entry?(entry.done>=3?'done':'partial'):'';
+    if(isToday)cls=(cls?cls+' ':'')+'today';
+    html+=`<div class="cal-cell ${cls}">${d}</div>`;
+  }
+  document.getElementById('cal-grid').innerHTML=html;
+}
+function calPrev(){state.calMonth--;if(state.calMonth<0){state.calMonth=11;state.calYear--;}renderCalendar();}
+function calNext(){state.calMonth++;if(state.calMonth>11){state.calMonth=0;state.calYear++;}renderCalendar();}
+function renderHistory(hist) {
+  const sorted=[...hist].sort((a,b)=>b.timestamp-a.timestamp).slice(0,20);
+  const pc=p=>{const n=parseInt(p);return isNaN(n)?'#ccc':n<=2?'#38A169':n<=5?'#FF9800':'#E53E3E';};
+  document.getElementById('history-list').innerHTML=sorted.length?sorted.map(h=>{
+    const d=DISEASES.find(x=>x.id===h.disease);
+    const timeStr=h.totalTime?Math.ceil(h.totalTime/60)+'分':'—';
+    return `<div class="history-item">
+      <div class="hi-date">${h.date}</div>
+      <div class="hi-row">
+        <div class="hi-disease">${d?d.icon+' '+d.name:h.disease}</div>
+        <div class="hi-detail">${h.done}種目完了</div>
+        <div class="hi-time-badge">⏱ ${timeStr}</div>
+        <div class="hi-pain" style="background:${pc(h.pain)}20;color:${pc(h.pain)}">痛み:${h.pain}</div>
+      </div>
+      ${h.memo?`<div style="font-size:12px;color:#718096;margin-top:6px">📝 ${h.memo}</div>`:''}
+    </div>`;
+  }).join(''):'<div style="text-align:center;color:#718096;padding:40px">記録がありません</div>';
+}
+
+// ============================================================
+// REPORT
+// ============================================================
+function showReport() {
+  const done=getTodayDone();
+  const pain=localStorage.getItem('pain_'+getTodayKey())||'未記録';
+  const memo=document.getElementById('memo-input')?.value||
+    (()=>{const h=getHistory().find(x=>x.date===getTodayKey());return h?h.memo:'';})();
+  const disease=state.currentDisease?DISEASES.find(x=>x.id===state.currentDisease):null;
+  const d=new Date();
+  const days=['日','月','火','水','木','金','土'];
+  const dateStr=`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${days[d.getDay()]}）`;
+  const totalSecs=done.reduce((s,x)=>s+(x.duration||0),0);
+  let lines=[];
+  lines.push('━━━━━━━━━━━━━━━━━━━━');
+  lines.push('  リハビリ実施レポート');
+  lines.push('━━━━━━━━━━━━━━━━━━━━');
+  lines.push(`【日付】${dateStr}`);
+  lines.push(`【疾患】${disease?disease.icon+' '+disease.name:'未選択'}`);
+  lines.push('');
+  lines.push('【実施した体操】');
+  if(done.length===0){
+    lines.push('  本日の実施記録なし');
+  }else{
+    done.forEach(entry=>{
+      const ex=EXERCISES[entry.id];
+      if(!ex)return;
+      const custom=getCustom(entry.id);
+      const atStr=entry.completedAt&&entry.completedAt!=='—'?` ${entry.completedAt}実施`:'';
+      const durStr=entry.duration?` ／ ${formatDuration(entry.duration)}`:'';
+      const setStr=entry.sets?` ／ ${entry.sets}セット完了`:'';
+      lines.push(`  ✓ ${ex.name}`);
+      lines.push(`    ${ex.body}${atStr}${durStr}${setStr}`);
+    });
+  }
+  lines.push('');
+  lines.push(`【合計運動時間】${totalSecs>0?Math.ceil(totalSecs/60)+'分（'+totalSecs+'秒）':'未計測'}`);
+  lines.push(`【痛みスケール】${pain}/10`);
+  lines.push(`【メモ】${memo||'なし'}`);
+  lines.push('');
+  lines.push(`作成：${dateStr} ${nowClock()}`);
+  lines.push('━━━━━━━━━━━━━━━━━━━━');
+  document.getElementById('report-content').textContent=lines.join('\n');
+  document.getElementById('report-modal').classList.add('show');
+}
+function copyReport() {
+  const text=document.getElementById('report-content').textContent;
+  navigator.clipboard.writeText(text).then(()=>showToast('📋 コピーしました！')).catch(()=>{
+    const ta=document.createElement('textarea');
+    ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');
+    document.body.removeChild(ta);showToast('📋 コピーしました！');
+  });
+}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+function handleOverlayClick(e,id){if(e.target.classList.contains('modal-overlay'))closeModal(id);}
+
+// ============================================================
+// PT MODE
+// ============================================================
+function renderPT() {
+  document.getElementById('pt-disease-chips').innerHTML=DISEASES.map(d=>
+    `<span class="pt-disease-chip ${d.id===state.ptDisease?'active':''}" onclick="setPTDisease('${d.id}')">${d.icon} ${d.name}</span>`
+  ).join('');
+  renderPTExercises();
+  state.screenHistory.push(state.screen);
+  showScreen('pt');
+}
+function setPTDisease(id) {
+  state.ptDisease=id;
+  document.querySelectorAll('.pt-disease-chip').forEach(c=>{
+    c.classList.toggle('active',c.getAttribute('onclick').includes(`'${id}'`));
+  });
+  renderPTExercises();
+}
+function renderPTExercises() {
+  const d=DISEASES.find(x=>x.id===state.ptDisease);
+  document.getElementById('pt-exercise-list').innerHTML=d.exercises.map(exId=>{
+    const ex=EXERCISES[exId];const custom=getCustom(exId);
+    return `<div class="pt-ex-item">
+      <div class="pt-ex-header">
+        <div class="pt-ex-name">${ex.name}</div>
+        <label class="pt-toggle"><input type="checkbox" id="pt-en-${exId}" checked><span class="pt-slider"></span></label>
+      </div>
+      <div class="pt-reps-row">
+        <div class="pt-field"><label>回数</label><input type="number" id="pt-reps-${exId}" value="${custom.reps}" min="1" max="50"></div>
+        <div class="pt-field"><label>セット</label><input type="number" id="pt-sets-${exId}" value="${custom.sets}" min="1" max="10"></div>
+        <div class="pt-field"><label>休憩(秒)</label><input type="number" id="pt-rest-${exId}" value="${custom.rest}" min="10" max="120"></div>
+        <div class="pt-field"><label>推奨時間帯</label>
+          <select id="pt-time-${exId}">
+            <option value="" ${!custom.timeOfDay?'selected':''}>指定なし</option>
+            <option value="朝" ${custom.timeOfDay==='朝'?'selected':''}>朝</option>
+            <option value="昼" ${custom.timeOfDay==='昼'?'selected':''}>昼</option>
+            <option value="夜" ${custom.timeOfDay==='夜'?'selected':''}>夜</option>
+          </select>
+        </div>
+      </div>
+      <div class="pt-note"><textarea id="pt-note-${exId}" placeholder="患者へのメモ・注意事項...">${custom.note||''}</textarea></div>
+    </div>`;
+  }).join('');
+}
+function savePrescription() {
+  const d=DISEASES.find(x=>x.id===state.ptDisease);
+  d.exercises.forEach(exId=>{
+    const reps=parseInt(document.getElementById('pt-reps-'+exId)?.value)||EXERCISES[exId].reps;
+    const sets=parseInt(document.getElementById('pt-sets-'+exId)?.value)||EXERCISES[exId].sets;
+    const rest=parseInt(document.getElementById('pt-rest-'+exId)?.value)||EXERCISES[exId].rest;
+    const timeOfDay=document.getElementById('pt-time-'+exId)?.value||'';
+    const note=document.getElementById('pt-note-'+exId)?.value||'';
+    localStorage.setItem('rx_'+exId,JSON.stringify({reps,sets,rest,timeOfDay,note}));
+  });
+  showToast('💾 処方を保存しました！');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+(function init(){
+  const savedMode=localStorage.getItem('mode');
+  if(savedMode)state.mode=savedMode;
+  const savedDisease=localStorage.getItem('currentDisease');
+  if(savedDisease)state.currentDisease=savedDisease;
+  showScreen('splash');
+})();
+
+// 疾患選択を保存
+const _origSelectDisease=selectDisease;
+selectDisease=function(id){localStorage.setItem('currentDisease',id);_origSelectDisease(id);};
+</script>
+</body>
+</html>
